@@ -1,0 +1,22 @@
+{
+  "name": "node-container",
+  "version": "0.0.0",
+  "description": "Puts a node app into a docker container",
+  "main": "index.js",
+  "scripts": {
+    "test": "DEBUG=true node test/index.js"
+  },
+  "keywords": [
+    "docker",
+    "deploy",
+    "container"
+  ],
+  "author": "Clemens Stolle",
+  "license": "ISC",
+  "dependencies": {
+    "dockerode": "~1.2.5",
+    "archiver": "~0.5.2",
+    "fstream-npm": "~0.1.6",
+    "rimraf": "~2.2.6"
+  }
+}
