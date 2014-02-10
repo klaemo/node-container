@@ -1,6 +1,6 @@
 node-container
 ===
-Create a docker container from a node app and run it.
+Create a docker container from a node app and run it, because we're hipster like that.
 
 ## WIP not done yet!
 
