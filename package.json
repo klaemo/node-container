@@ -11,6 +11,7 @@
     "deploy",
     "container"
   ],
+  "repository": "klaemo/node-container",
   "author": "Clemens Stolle",
   "license": "ISC",
   "dependencies": {
