@@ -67,7 +67,7 @@ module.exports = function containerize (dir, conf, done) {
 
   function run (image, pkg, cb) {
     var name = conf.prefix ? conf.prefix + '-' + pkg.name : pkg.name
-    var port = pkg.port || 3000
+    var port = 'port' in pkg ? pkg.port : 3000
     
     var containerConf = {
       Image: image,
@@ -75,7 +75,7 @@ module.exports = function containerize (dir, conf, done) {
       Env: [ 'PORT=' + port, 'NODE_ENV=production' ],
       ExposedPorts: {}
     }
-    containerConf.ExposedPorts[port + '/tcp'] = {}
+    if (port) containerConf.ExposedPorts[port + '/tcp'] = {}
     
     docker.createContainer(containerConf, function (err, container) {
       if (err && err.statusCode == 409) {
@@ -89,7 +89,7 @@ module.exports = function containerize (dir, conf, done) {
 
       var runConfig = { PortBindings: {} }
       // bind ports. the api wants the ports as a string... :-/
-      runConfig.PortBindings[port + '/tcp'] = [{ HostPort: port + '' }]
+      if (port) runConfig.PortBindings[port + '/tcp'] = [{ HostPort: port + '' }]
 
       container.start(runConfig, function (err, data) {
         if (err) return cb(err)
