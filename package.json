@@ -1,6 +1,6 @@
 {
   "name": "node-container",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Puts a node app into a docker container",
   "main": "index.js",
   "scripts": {
