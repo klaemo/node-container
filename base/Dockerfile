@@ -7,6 +7,7 @@ RUN echo "deb http://archive.ubuntu.com/ubuntu precise main universe" > /etc/apt
 RUN apt-get update && apt-get -y upgrade
 RUN apt-get install -y python-software-properties python g++ make git curl
 RUN add-apt-repository -y ppa:chris-lea/node.js && apt-get update
+RUN apt-get install -y nodejs
 
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
