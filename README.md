@@ -11,9 +11,11 @@ Create a docker container from a node app and run it, because we're hipster like
 ## Usage
 
 Give it the path of your node app...it'll do the rest (ideally).
-_Note:__ The docker daemon needs to run somewhere accessible.
+__Note:__ The docker daemon needs to run somewhere accessible.
 
 You can do `npm test` to see it in action.
+The first time you run it can take a while, since it needs to fetch the base images.
+Subsequent runs should be pretty fast.
 
 ```javascript
 var containerize = require('node-container')
@@ -25,7 +27,7 @@ var config = {
   
   // prefix for images and containers, eg 'prefix-appname' or 'prefix/imagename'
   prefix: 'tests',
-  run: true //wether to run the container or not (defaults to true)
+  run: true // whether to run the container or not (defaults to true)
 }
 
 // pass it the directory of your node app, config is optional
