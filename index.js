@@ -43,16 +43,16 @@ module.exports = function containerize (conf, dir, done) {
     
       docker.buildImage(tar, { t: tag, rm: true }, function (err, stream) {
         if (err) return cb(err)
-        
-        stream.on('data', function (chunk) {
-          if (process.env.DEBUG) {
-            console.log(JSON.parse(chunk).stream)
-          }
-        })
 
         stream.on('error', cb)
         stream.on('end', function () {
           cb(null, tag, src)
+        })
+
+        stream.on('data', function (chunk) {
+          if (process.env.DEBUG) {
+            console.log(JSON.parse(chunk).stream || JSON.parse(chunk))
+          }
         })
       })
     })
@@ -60,12 +60,17 @@ module.exports = function containerize (conf, dir, done) {
 
   function run (image, pkg, cb) {
     var name = conf.prefix ? 'taco-' + pkg.name : pkg.name
+    var port = pkg.port || 3000
     
-    docker.createContainer({
+    var containerConf = {
       Image: image,
       name: name,
-      Env: [ 'PORT=3000' ]
-    }, function (err, container) {
+      Env: [ 'PORT=' + port, 'NODE_ENV=production' ],
+      ExposedPorts: {}
+    }
+    containerConf.ExposedPorts[port + '/tcp'] = {}
+    
+    docker.createContainer(containerConf, function (err, container) {
       if (err && err.statusCode == 409) {
         clean(name, function (err, data) {
           if (err) return cb(err)
@@ -75,8 +80,12 @@ module.exports = function containerize (conf, dir, done) {
       }
       if (err) return cb(err)
 
-      container.start(function (err, data) {
-        if (err) return console.error(err)
+      var runConfig = { PortBindings: {} }
+      // bind ports. the api wants the ports as a string... :-/
+      runConfig.PortBindings[port + '/tcp'] = [{ HostPort: port + '' }]
+
+      container.start(runConfig, function (err, data) {
+        if (err) return cb(err)
         cb(null, container)
       })
     })
@@ -130,6 +139,7 @@ function cp (target, cb) {
     .on('finish', cb)
 }
 
+/*
 var opts = {
   "Hostname":"",
   "User":"",
@@ -156,4 +166,4 @@ var opts = {
   "ExposedPorts":{
     "22/tcp": {}
   }
-}
+}*/
