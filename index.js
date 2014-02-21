@@ -9,6 +9,7 @@ var rimraf = require('rimraf')
 var TMPDIR = require('os').tmpdir() || '/tmp'
 
 module.exports = function containerize (dir, conf, done) {
+  var retries = 3
   if (!done && typeof conf == 'function') {
     done = conf
     conf = {
@@ -72,13 +73,16 @@ module.exports = function containerize (dir, conf, done) {
     var containerConf = {
       Image: image,
       name: name,
-      Env: [ 'PORT=' + port, 'NODE_ENV=production' ],
+      Env: [ 'NODE_ENV=production' ],
       ExposedPorts: {}
     }
-    if (port) containerConf.ExposedPorts[port + '/tcp'] = {}
+    if (port) {
+      containerConf.Env.push('PORT=' + port)
+      containerConf.ExposedPorts[port + '/tcp'] = {}
+    }
     
     docker.createContainer(containerConf, function (err, container) {
-      if (err && err.statusCode == 409) {
+      if (err && --retries >= 0 && err.statusCode == 409) {
         clean(name, function (err, data) {
           if (err) return cb(err)
           run(image, pkg, cb)

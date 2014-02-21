@@ -10,6 +10,7 @@
     "type": "git",
     "url": "http://localhost:8080/testrepo.git"
   },
+  "port": 3030,
   "author": "",
   "license": "ISC",
   "dependencies": {
