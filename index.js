@@ -8,7 +8,14 @@ var rimraf = require('rimraf')
 
 var TMPDIR = require('os').tmpdir() || '/tmp'
 
-module.exports = function containerize (conf, dir, done) {
+module.exports = function containerize (dir, conf, done) {
+  if (!done && typeof conf == 'function') {
+    done = conf
+    conf = {
+      host: 'http://localhost',
+      port: 4243,
+    }
+  }
   conf.run = 'run' in conf ? conf.run : true
 
   var docker = new Docker(conf)
@@ -59,7 +66,7 @@ module.exports = function containerize (conf, dir, done) {
   }
 
   function run (image, pkg, cb) {
-    var name = conf.prefix ? 'taco-' + pkg.name : pkg.name
+    var name = conf.prefix ? conf.prefix + '-' + pkg.name : pkg.name
     var port = pkg.port || 3000
     
     var containerConf = {
