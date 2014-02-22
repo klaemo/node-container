@@ -19,16 +19,6 @@ Subsequent runs should be pretty fast.
 
 ```javascript
 var containerize = require('node-container')
-var config = {
-  // docker config
-  host: 'http://localhost',
-  port: 4243,
-  // socketPath: '',
-  
-  // prefix for images and containers, eg 'prefix-appname' or 'prefix/imagename'
-  prefix: 'tests',
-  run: true // whether to run the container or not (defaults to true)
-}
 
 // pass it the directory of your node app, config is optional
 containerize(__dirname + '/testrepo', config, function (err, container) {
@@ -36,6 +26,31 @@ containerize(__dirname + '/testrepo', config, function (err, container) {
   console.log('DONE')
   console.log(container)
 })
+```
+
+`container` is the output of `docker inspect [container]`.
+There you'll find the containers id, pid, network settings etc.
+
+### Configuration options
+
+All of these are __optional__, but you probably want to at least set the docker config.
+It can also be specified in the environment as
+`DOCKER_HOST=tcp://localhost:4243`
+
+```javascript
+{
+  // docker config
+  host: 'http://localhost',
+  port: 4243,
+  // socketPath: '',
+  
+  // prefix for images and containers, eg 'prefix-appname' or 'prefix/imagename'
+  prefix: 'tests',
+  // whether to run the container or not
+  run: true,
+  // whether to monitor the node process with mon or not
+  monitor: true
+}
 ```
 
 ## What does it do exactly?
@@ -57,6 +72,14 @@ containerize(__dirname + '/testrepo', config, function (err, container) {
 2. If you want to listen to a specific port, you can specify it in your package.json with `port: 1234` otherwhise it defaults to `3000`. If you don't want to expose it to the world you can set `port: false`
 3. Your app needs to be runnable with `npm start`
 
+Options you can set in your app's package.json
+
+```javascript
+{
+  "port": false
+}
+```
+
 Take a look add the test app.
 
 ## Wishlist
@@ -65,6 +88,7 @@ Take a look add the test app.
 * persistent volume support
 * be more flexible wrt docker run options etc
 * evaluate if it's possible to run apps as non-root user
+* CLI
 
 ## Contributing
 
