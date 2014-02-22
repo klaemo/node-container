@@ -1,5 +1,6 @@
 var path = require('path')
 var fs = require('fs')
+var url = require('url')
 
 var Docker = require('dockerode')
 var archiver = require('archiver')
@@ -8,16 +9,29 @@ var rimraf = require('rimraf')
 
 var TMPDIR = require('os').tmpdir() || '/tmp'
 
-module.exports = function containerize (dir, conf, done) {
-  var retries = 3
-  if (!done && typeof conf == 'function') {
-    done = conf
-    conf = {
-      host: 'http://localhost',
-      port: 4243,
-    }
+module.exports = containerize
+module.exports._setup = setup
+
+function setup (conf) {
+  var env = {}
+  
+  if (!conf || typeof conf == 'function') {
+    conf = {}
+    if (process.env.DOCKER_HOST) env = url.parse(process.env.DOCKER_HOST)
+    if (env.protocol) conf.host = env.protocol + '//' + env.hostname
+    if (env.port) conf.port = env.port
   }
   conf.run = 'run' in conf ? conf.run : true
+  conf.monitor = 'monitor' in conf ? conf.monitor : true
+
+  return conf
+}
+
+function containerize (dir, conf, done) {
+  var retries = 3
+
+  if (!done && typeof conf == 'function') done = conf
+  conf = setup(conf)
 
   var docker = new Docker(conf)
   var pkg = require(path.resolve(dir, 'package.json'))

@@ -8,4 +8,3 @@ ADD ./ /home/container
 RUN cd /home/container && npm install --production
 
 WORKDIR /home/container
-CMD ["mon", "npm start"]
