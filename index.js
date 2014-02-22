@@ -35,6 +35,7 @@ function containerize (dir, conf, done) {
 
   var docker = new Docker(conf)
   var pkg = require(path.resolve(dir, 'package.json'))
+  var port = 'port' in pkg ? pkg.port : 3000
 
   // build image from Dockerfile
   build(pkg, function (err, tag, tmp) {
@@ -44,11 +45,19 @@ function containerize (dir, conf, done) {
     rimraf(tmp, function (err) {
       if (err) return done(err)
       
-      // run the container
-      if (conf.run)
-        run(tag, pkg, done)
-      else
-        done(null, {})
+      createContainer(tag, pkg, function (err, container) {
+        if (err) return done(err)
+        
+          // run the container
+          if (conf.run) {
+            startContainer(container, function (err) {
+              if (err) return done(err)
+              container.inspect(done)
+            })
+          }
+          else
+            container.inspect(done)
+      })
     })
   })
 
@@ -80,40 +89,43 @@ function containerize (dir, conf, done) {
     })
   }
 
-  function run (image, pkg, cb) {
+  function createContainer (image, pkg, cb) {
     var name = conf.prefix ? conf.prefix + '-' + pkg.name : pkg.name
-    var port = 'port' in pkg ? pkg.port : 3000
     
     var containerConf = {
       Image: image,
       name: name,
       Env: [ 'NODE_ENV=production' ],
+      Cmd: [ 'mon', 'npm', 'start' ],
       ExposedPorts: {}
     }
+
     if (port) {
-      containerConf.Env.push('PORT=' + port)
+      containerConf.Env.push('PORT=' + pkg.port)
       containerConf.ExposedPorts[port + '/tcp'] = {}
     }
+    if (!conf.monitor) containerConf.Cmd = containerConf.Cmd.slice(1)
     
     docker.createContainer(containerConf, function (err, container) {
       if (err && --retries >= 0 && err.statusCode == 409) {
         clean(name, function (err, data) {
           if (err) return cb(err)
-          run(image, pkg, cb)
+          createContainer(image, pkg, cb)
         })
         return
       }
       if (err) return cb(err)
-
-      var runConfig = { PortBindings: {} }
-      // bind ports. the api wants the ports as a string... :-/
-      if (port) runConfig.PortBindings[port + '/tcp'] = [{ HostPort: port + '' }]
-
-      container.start(runConfig, function (err, data) {
-        if (err) return cb(err)
-        cb(null, container)
-      })
+      cb(null, container)
     })
+  }
+
+  function startContainer (container, cb) {
+    var runConfig = { PortBindings: {} }
+
+    // bind ports. the api wants the ports as a string... :-/
+    if (port) runConfig.PortBindings[port + '/tcp'] = [{ HostPort: port + '' }]
+
+    container.start(runConfig, cb)
   }
 
   function clean (name, cb) {
@@ -163,32 +175,3 @@ function cp (target, cb) {
     .on('error', cb)
     .on('finish', cb)
 }
-
-/*
-var opts = {
-  "Hostname":"",
-  "User":"",
-  "Memory":0,
-  "MemorySwap":0,
-  "AttachStdin":false,
-  "AttachStdout":true,
-  "AttachStderr":true,
-  "PortSpecs":null,
-  "Tty":false,
-  "OpenStdin":false,
-  "StdinOnce":false,
-  "Env":null,
-  "Cmd":[
-    "date"
-  ],
-  "Dns":null,
-  "Image":"base",
-  "Volumes":{
-    "/tmp": {}
-  },
-  "VolumesFrom":"",
-  "WorkingDir":"",
-  "ExposedPorts":{
-    "22/tcp": {}
-  }
-}*/
