@@ -3,6 +3,7 @@ node-container
 Create a docker container from a node app and run it, because we're hipster like that.
 
 ## WIP don't use for serious apps yet!
+I'd love to hear your feedback. There are a lot of details to flesh out yet. Also checkout my wish list below.
 
 ## Installation
 
@@ -89,6 +90,7 @@ Take a look add the test app.
 * be more flexible wrt docker run options etc
 * evaluate if it's possible to run apps as non-root user
 * CLI
+* find a better way to negotiate ports
 
 ## Contributing
 
